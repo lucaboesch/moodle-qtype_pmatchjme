@@ -124,7 +124,7 @@ class qtype_pmatchjme extends qtype_pmatch {
         parent::delete_question($questionid, $contextid);
     }
 
-    protected function delete_extra_answer_records($questionid) {
+    protected function delete_extra_answer_records($questionid): void {
         global $DB;
         $answerids = $DB->get_records_menu('question_answers',
                                            array('question' => $questionid),
