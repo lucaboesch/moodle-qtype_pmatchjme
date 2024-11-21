@@ -30,8 +30,8 @@ $plugin->component = 'qtype_pmatchjme';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = '2.3 for Moodle 3.11+';
 
-$plugin->dependencies = array(
+$plugin->dependencies = [
     'qtype_pmatch' => 2022080900,
-);
+];
 
 $plugin->outestssufficient = true;

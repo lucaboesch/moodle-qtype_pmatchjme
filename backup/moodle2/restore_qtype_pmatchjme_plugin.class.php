@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Restore code for the qtype_pmatchjme plugin.
+ *
  * @package   qtype_pmatchjme
  * @copyright 2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -34,7 +36,7 @@ class restore_qtype_pmatchjme_plugin extends restore_qtype_plugin {
      */
     protected function define_question_plugin_structure() {
 
-        $paths = array();
+        $paths = [];
 
         // This qtype uses question_answers, add them.
         $this->add_question_question_answers($paths);
@@ -57,6 +59,8 @@ class restore_qtype_pmatchjme_plugin extends restore_qtype_plugin {
 
     /**
      * Process the qtype/pmatch element.
+     *
+     * @param object $data The data to process.
      */
     public function process_pmatch($data) {
         global $DB;
@@ -83,6 +87,8 @@ class restore_qtype_pmatchjme_plugin extends restore_qtype_plugin {
 
     /**
      * Process the qtype/varnumericset_answer element.
+     *
+     * @param object $data The data to process.
      */
     public function process_pmatchjme_answer($data) {
         global $DB;
@@ -104,6 +110,8 @@ class restore_qtype_pmatchjme_plugin extends restore_qtype_plugin {
 
     /**
      * Process the qtype/synonyms/synonym element.
+     *
+     * @param object $data The data to process.
      */
     public function process_synonym($data) {
         global $DB;

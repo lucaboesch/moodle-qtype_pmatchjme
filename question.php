@@ -34,25 +34,59 @@ require_once($CFG->dirroot.'/question/type/pmatch/question.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_pmatchjme_question extends qtype_pmatch_question {
+
+    /**
+     * @var int The use case of the question.
+     */
+    public $usecase;
+
+    /**
+     * @var string The dictionary to extend.
+     */
+    public $extenddictionary;
+
+    /**
+     * @var string The sentence dividers.
+     */
+    public $sentencedividers;
+
+    /**
+     * @var string The characters that should be convert to space.
+     */
+    public $converttospace;
+
+    /**
+     * {@inheritdoc}
+     */
     public function get_expected_data() {
-        return array('answer' => PARAM_RAW, 'jme' => PARAM_RAW, 'mol' => PARAM_RAW);
+        return ['answer' => PARAM_RAW, 'jme' => PARAM_RAW, 'mol' => PARAM_RAW];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function get_correct_response() {
         $response = parent::get_correct_response();
         if (!$response) {
             return $response;
         }
 
-        $matches = array();
+        $matches = [];
         $pmatchanswer = preg_replace('!\s!', '', $response['answer']);
         if (preg_match('!match\((.+)\)$!iA', $pmatchanswer, $matches)) {
-            return array('answer' => $matches[1]);
+            return ['answer' => $matches[1]];
         } else {
             return null;
         }
     }
 
+    /**
+     * Check the atom count of the student response.
+     *
+     * @param string $response The student response.
+     * @return array The messages to display.
+     * @throws coding_exception
+     */
     public function check_atom_count($response) {
         $correctresponse = $this->get_correct_response();
         $pmatchanswer = $correctresponse['answer'];
@@ -61,7 +95,7 @@ class qtype_pmatchjme_question extends qtype_pmatch_question {
         $smilesresponse = preg_replace('!\s!', '', $response['answer']);
         $responseparts = $this->count_compound_parts($smilesresponse);
 
-        $messages = array();
+        $messages = [];
         $anyerror = (count($answerparts) != count($responseparts));
         $i = 0;
         foreach ($responseparts as $part => $responsecount) {
@@ -76,10 +110,20 @@ class qtype_pmatchjme_question extends qtype_pmatch_question {
         if (!$anyerror) {
             // Count of smiles elements for student response and correct answer is the same
             // clear all other messages and replace it with this one.
-            $messages = array(get_string('smilescorrectcount', 'qtype_pmatchjme'));
+            $messages = [get_string('smilescorrectcount', 'qtype_pmatchjme')];
         }
         return $messages;
     }
+
+    /**
+     * Compare the number of parts of a compound.
+     *
+     * @param int $answercount
+     * @param int $responsecount
+     * @param string $part symbol for part of a molecule.
+     * @return array
+     * @throws coding_exception
+     */
     protected function part_comparison($answercount, $responsecount, $part) {
         $humanreadablepart = $this->get_part_name($part);
         if ($answercount < $responsecount) {
@@ -92,10 +136,12 @@ class qtype_pmatchjme_question extends qtype_pmatch_question {
             $message = get_string('smilesequal', 'qtype_pmatchjme', $humanreadablepart);
             $error = false;
         }
-        return array($message, $error);
+        return [$message, $error];
     }
 
     /**
+     * Get the human-readable name for a part of a molecule.
+     *
      * @param string $part symbol for part of a molecule.
      * @return string the human-readable name for that part.
      */
@@ -114,11 +160,14 @@ class qtype_pmatchjme_question extends qtype_pmatch_question {
 
     /**
      * Count parts of compound.
+     *
+     * @param string $compound The compound to count.
+     * @return array The count of each part.
      */
-    protected function count_compound_parts($compound) {
-        $partstocount = array('Cl', 'Br', 'c', 'C', 'O', 'N', 'S', 'F', 'I', '=', '#');
+    protected function count_compound_parts($compound): array {
+        $partstocount = ['Cl', 'Br', 'c', 'C', 'O', 'N', 'S', 'F', 'I', '=', '#'];
         $cursor = 0;
-        $count = array();
+        $count = [];
         while ($cursor < strlen($compound)) {
             $counted = false;
             foreach ($partstocount as $parttocount) {
@@ -140,9 +189,22 @@ class qtype_pmatchjme_question extends qtype_pmatch_question {
         return $count;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @param question_attempt_step $step The step to start.
+     * @param int $variant which variant of this question to start.
+     * @return void
+     */
     public function start_attempt(question_attempt_step $step, $variant) {
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @param question_attempt_step $step The step to start.
+     * @return void
+     */
     public function apply_attempt_state(question_attempt_step $step) {
     }
 }

@@ -34,15 +34,20 @@ require_once($CFG->dirroot . '/question/type/pmatch/questiontype.php');
  * in the database.
  */
 class qtype_pmatchjme_answer extends question_answer {
+
+    /**
+     * @var int The number of atoms in the answer.
+     */
+    public $atomcount;
+
     /**
      * Constructor.
      * @param int $id the answer.
      * @param string $answer the answer.
-     * @param int $answerformat the format of the answer.
      * @param number $fraction the fraction this answer is worth.
      * @param string $feedback the feedback for this answer.
      * @param int $feedbackformat the format of the feedback.
-     * @param integer $atomcount
+     * @param int $atomcount the number of atoms in the answer.
      */
     public function __construct($id, $answer, $fraction, $feedback, $feedbackformat, $atomcount) {
         parent::__construct($id, $answer, $fraction, $feedback, $feedbackformat);
@@ -59,6 +64,11 @@ class qtype_pmatchjme_answer extends question_answer {
  */
 class qtype_pmatchjme extends qtype_pmatch {
 
+    /**
+     * {@inheritdoc}
+     *
+     * @param stdClass $fromform data from the form.
+     */
     public function save_defaults_for_new_questions(stdClass $fromform): void {
         $grandparent = new question_type();
         $grandparent->save_defaults_for_new_questions($fromform);
@@ -66,6 +76,13 @@ class qtype_pmatchjme extends qtype_pmatch {
         $this->set_default_value('allowsubscript', $fromform->allowsubscript);
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @param object $question This holds the information from the editing form,
+     *       it is not a standard question object.
+     * @return bool|stdClass $result->error or $result->notice
+     */
     public function save_question_options($question) {
         global $DB;
         $question->usecase = 1;
@@ -78,12 +95,33 @@ class qtype_pmatchjme extends qtype_pmatch {
         }
         return parent::save_question_options($question);
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param object $formdata The form data.
+     * @param bool $withparts Whether to save the parts.
+     */
     public function save_hints($formdata, $withparts = false) {
         parent::save_hints($formdata, true);
     }
+
+    /**
+     * {@inheritdoc}
+     */
     public function extra_answer_fields() {
-        return array('qtype_pmatchjme_answers', 'atomcount');
+        return ['qtype_pmatchjme_answers', 'atomcount'];
     }
+
+    /**
+     * Save the extra answer data for a question.
+     *
+     * @param object $question the data being passed to the form.
+     * @param string $key The key of the answer.
+     * @param int $answerid The id of the answer.
+     * @return void
+     * @throws dml_exception
+     */
     public function save_extra_answer_data($question, $key, $answerid) {
         global $DB;
         $extraanswerdata = new stdClass();
@@ -97,6 +135,7 @@ class qtype_pmatchjme extends qtype_pmatch {
     }
     /**
      * Initialise question_definition::answers field.
+     *
      * @param question_definition $question the question_definition we are creating.
      * @param object $questiondata the question data loaded from the database.
      * @param bool $forceplaintextanswers most qtypes assume that answers are
@@ -107,7 +146,7 @@ class qtype_pmatchjme extends qtype_pmatch {
      */
     protected function initialise_question_answers(question_definition $question,
             $questiondata, $forceplaintextanswers = true) {
-        $question->answers = array();
+        $question->answers = [];
         if (empty($questiondata->options->answers)) {
             return;
         }
@@ -119,15 +158,33 @@ class qtype_pmatchjme extends qtype_pmatch {
             }
         }
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param int $questionid the id of the question being deleted.
+     * @param int $contextid the context this quesiotn belongs to.
+     * @return void
+     * @throws coding_exception
+     * @throws dml_exception
+     */
     public function delete_question($questionid, $contextid): void {
         $this->delete_extra_answer_records($questionid);
         parent::delete_question($questionid, $contextid);
     }
 
+    /**
+     * Delete all the extra answer records for a question.
+     *
+     * @param int $questionid The id of the question.
+     * @return void
+     * @throws coding_exception
+     * @throws dml_exception
+     */
     protected function delete_extra_answer_records($questionid) {
         global $DB;
         $answerids = $DB->get_records_menu('question_answers',
-                                           array('question' => $questionid),
+                                           ['question' => $questionid],
                                            '', 'id, 1');
         if (count($answerids) != 0) {
             list ($sql, $params) = $DB->get_in_or_equal(array_keys($answerids));
